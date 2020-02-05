@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 
 <html>
-    
+
     <head>
         <meta charset="utf-8" />
         <title>Hello, WebVR! • A-Frame</title>
@@ -10,69 +10,110 @@
         <script src="https://jeromeetienne.github.io/AR.js/aframe/build/aframe-ar.js"></script>
 
         <script>
-    
+
             // store visibility data in object;
             //  can only draw line when both are visible.
-            let markerVisible = { tower: false, target: false };
-            
+            let markerVisible = { m_tower1: false, m_tower2: false, m_target: false };
+
             AFRAME.registerComponent('registerevents', {
-                init: function () 
+                init: function ()
                 {
                     let marker = this.el;
-                    
+
                     marker.addEventListener('markerFound', function() {
                         markerVisible[ marker.id ] = true;
                         console.log("found");
                     });
-            
+
                     marker.addEventListener('markerLost', function() {
                         markerVisible[ marker.id ] = false;
                         console.log("lost");
                     });
                 }
             });
-            
+
             AFRAME.registerComponent('run', {
                 init: function()
                 {
-                    this.tower = document.querySelector("#tower");
-                    this.target = document.querySelector("#target");
-                    this.p0 = new THREE.Vector3();
-                    this.p1 = new THREE.Vector3(); 
-                    
-                    this.geometry = new THREE.Geometry();
-                    this.geometry.vertices.push( new THREE.Vector3(-1,-1,-1) );
-                    this.geometry.vertices.push( new THREE.Vector3( 1, 1, 1) );
-                    this.material = new THREE.LineBasicMaterial( {color: 0xFF0000} );
-                    this.line = new THREE.Line( this.geometry, this.material );
+                    this.m_tower1 = document.querySelector("#m_tower1");
+                    this.m_tower2 = document.querySelector("#m_tower1");
+                    this.m_target = document.querySelector("#m_target");
+                    this.posTower1 = new THREE.Vector3();
+                    this.posTower2 = new THREE.Vector3();
+                    this.posTarget = new THREE.Vector3();
+
                     let scene = document.querySelector('a-scene').object3D;
-                    scene.add( this.line );
+
+                    // Line 1
+                    this.geometry1 = new THREE.Geometry();
+                    this.geometry1.vertices.push( new THREE.Vector3(-1,-1,-1) );
+                    this.geometry1.vertices.push( new THREE.Vector3( 1, 1, 1) );
+                    this.material1 = new THREE.LineBasicMaterial( {color: 0x00b5e1, linewidth: 5} );
+                    this.line1 = new THREE.Line( this.geometry1, this.material1 );
+                    scene.add( this.line1 );
+
+                    // Line 2
+                    this.geometry2 = new THREE.Geometry();
+                    this.geometry2.vertices.push( new THREE.Vector3(-1,-1,-1) );
+                    this.geometry2.vertices.push( new THREE.Vector3( 1, 1, 1) );
+                    this.material2 = new THREE.LineBasicMaterial( {color: 0x8f00ff, linewidth: 5} );
+                    this.line2 = new THREE.Line( this.geometry2, this.material2 );
+                    scene.add( this.line2 );
                 },
-                
-                tick: function (time, deltaTime) 
-                {   
-                    console.log("tick");
-                    if ( markerVisible["tower"] && markerVisible["target"] )
-                    {   
-                        console.log("FIRE !!!");
-                        this.tower.object3D.getWorldPosition(this.p0);
-                        this.target.object3D.getWorldPosition(this.p1);
-                        this.geometry.vertices[0] = this.p0;
-                        this.geometry.vertices[1] = this.p1;
-                        this.geometry.verticesNeedUpdate = true;
-                        this.line.visible = true;
+
+
+                tick: function (time, deltaTime)
+                {
+                    if ( markerVisible["m_tower1"] && markerVisible["m_target"] )
+                    {
+                        this.m_tower1.object3D.translateY(3.1);
+                        this.m_target.object3D.translateY(0.4);
+                        this.m_tower1.object3D.getWorldPosition(this.posTower1);
+                        this.m_target.object3D.getWorldPosition(this.posTarget);
+                        this.m_tower1.object3D.translateY(-3.1);
+                        this.m_target.object3D.translateY(-0.4);
+                        this.geometry1.vertices[0] = this.posTower1;
+                        this.geometry1.vertices[1] = this.posTarget;
+                        this.geometry1.verticesNeedUpdate = true;
+                        if (this.posTower1.distanceTo(this.posTarget) < 4){
+                            this.line1.visible = true;
+                        }
+                        else{
+                            this.line1.visible = false;
+                        }
                     }
                     else
                     {
-                        this.line.visible = false;
+                        this.line1.visible = false;
+                    }
+                    if ( markerVisible["m_tower2"] && markerVisible["m_target"] )
+                    {
+                        this.m_tower2.object3D.translateY(3.1);
+                        this.m_target.object3D.translateY(0.4);
+                        this.m_tower2.object3D.getWorldPosition(this.posTower2);
+                        this.m_target.object3D.getWorldPosition(this.posTarget);
+                        this.m_tower2.object3D.translateY(-3.1);
+                        this.m_target.object3D.translateY(-0.4);
+                        this.geometry2.vertices[0] = this.posTower2;
+                        this.geometry2.vertices[1] = this.posTarget;
+                        this.geometry2.verticesNeedUpdate = true;
+                        if (this.posTower2.distanceTo(this.posTarget) < 4){
+                            this.line2.visible = true;
+                        }else{
+                            this.line2.visible = false;
+                        }
+                    }
+                    else
+                    {
+                        this.line2.visible = false;
                     }
                 }
             });
-            
+
             </script>
 
     </head>
-    
+
     <body>
 
         <a-scene embedded arjs="debugUIEnabled:false;">
@@ -80,28 +121,32 @@
             <a-assets>
                 <a-asset-item id="tower" src="models/tower/scene.gltf"></a-asset-item>
                 <a-asset-item id="blue_cristal" src="models/blue_cristal/scene.gltf"></a-asset-item>
+                <a-asset-item id="purple_cristal" src="models/purple_cristal/scene.gltf"></a-asset-item>
                 <a-asset-item id="knight" src="models/knight/scene.gltf"></a-asset-item>
             </a-assets>
 
-            <a-marker id="tower" preset="hiro" registerevents="" material="" arjs-anchor="" arjs-hit-testing="">
-                <a-entity geometry="">
-                    <a-entity position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04" gltf-model="#tower"></a-entity>
-                    <a-entity position="0 3 0" rotation="0 0 0" scale="0.1 0.1 0.1" gltf-model="#blue_cristal" animation="property: rotation; to: 0 360 0; easing: linear; loop: true; dur: 5000">
-                </a-entity>
-                
+            <a-marker id="m_tower1" preset="hiro" registerevents="" material="" arjs-anchor="" arjs-hit-testing="">
+                <a-entity position="0 3 0" rotation="0 0 0" scale="0.1 0.1 0.1" gltf-model="#blue_cristal" animation="property: rotation; to: 0 360 0; easing: linear; loop: true; dur: 5000"></a-entity>
+                <a-entity position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04" gltf-model="#tower"></a-entity>
+
+            </a-marker>
+
+            <a-marker id="m_tower2" type="barcode" value="0" egisterevents="" material="" arjs-anchor="" arjs-hit-testing="">
+                <a-entity position="0 3 0" rotation="0 0 0" scale="0.03 0.03 0.03" gltf-model="#purple_cristal" animation="property: rotation; to: 0 360 0; easing: linear; loop: true; dur: 5000"></a-entity>
+                <a-entity position="0 0 0" rotation="0 0 0" scale="0.04 0.04 0.04" gltf-model="#tower"></a-entity>
+
             </a-marker>
 
 
-            <a-marker id="target" preset="kanji" registerevents="" material="" arjs-anchor="" arjs-hit-testing="">
-                <a-entity position="0 0 0" rotation="0 0 0" scale="0.5 0.5 0.5" gltf-model="#knight" geometry=""></a-entity>
+            <a-marker id="m_target" preset="kanji" registerevents="" material="" arjs-anchor="" arjs-hit-testing="">
+                <a-entity position="0 0 0" rotation="0 0 0" scale="0.5 0.5 0.5" gltf-model="#knight"></a-entity>
             </a-marker>
 
             <a-entity run=""></a-entity>
             <a-entity camera></a-entity>
           </a-scene>
 
-    
+
     </body>
 
 </html>
-
